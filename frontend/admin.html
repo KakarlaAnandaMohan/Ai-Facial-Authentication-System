@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Admin panel — manage users and view system analytics">
+  <title>Admin — Facial Auth</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">
+      <div class="logo-icon">🔐</div>
+      <span class="logo-text">FaceAuth AI</span>
+    </div>
+    <div class="nav-links">
+      <a href="dashboard.html" class="nav-link">Dashboard</a>
+      <a href="admin.html" class="nav-link active">Admin</a>
+      <button class="btn btn-sm btn-secondary" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-container">
+    <div class="content-wrapper">
+      <h1 style="margin-bottom:var(--space-sm)">Admin Panel</h1>
+      <p class="subtitle">System overview and user management</p>
+
+      <div id="alert-area"></div>
+
+      <!-- Analytics Stats -->
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Total Users</div>
+          <div class="stat-value" id="stat-total">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Users with Face</div>
+          <div class="stat-value success" id="stat-faces">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">System Status</div>
+          <div class="stat-value success" id="stat-status" style="font-size:1.25rem">—</div>
+        </div>
+      </div>
+
+      <!-- Users Table -->
+      <div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:var(--space-lg) var(--space-xl) var(--space-md)">
+          <h2 style="margin-bottom:0">Registered Users</h2>
+        </div>
+        <div class="table-wrapper" style="border:none;border-radius:0">
+          <table>
+            <thead>
+              <tr>
+                <th>Email</th>
+                <th>Face Status</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody">
+              <tr><td colspan="4" style="text-align:center;padding:var(--space-2xl)">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="User dashboard — manage your profile and face authentication">
+  <title>Dashboard — Facial Auth</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="logo">
+      <div class="logo-icon">🔐</div>
+      <span class="logo-text">FaceAuth AI</span>
+    </div>
+    <div class="nav-links">
+      <a href="dashboard.html" class="nav-link active">Dashboard</a>
+      <a href="admin.html" class="nav-link">Admin</a>
+      <div class="nav-user">
+        <span id="nav-email">Loading...</span>
+        <div class="avatar" id="nav-avatar">?</div>
+      </div>
+      <button class="btn btn-sm btn-secondary" onclick="logout()">Logout</button>
+    </div>
+  </nav>
+
+  <div class="page-container">
+    <div class="content-wrapper">
+      <h1 style="margin-bottom:var(--space-lg)">Dashboard</h1>
+
+      <div id="alert-area"></div>
+
+      <!-- Profile Section -->
+      <div class="profile-section">
+        <!-- Profile Card -->
+        <div class="card profile-card" id="profile-card">
+          <div class="profile-avatar" id="profile-avatar">?</div>
+          <div class="profile-email" id="profile-email">Loading...</div>
+          <div class="profile-meta" id="profile-meta">Loading...</div>
+          <div id="face-status" style="margin-bottom:var(--space-lg)"></div>
+          <div class="profile-actions">
+            <button class="btn btn-sm btn-secondary" onclick="openEditModal()">✏️ Edit Profile</button>
+            <button class="btn btn-sm btn-danger" onclick="confirmDelete()">🗑️ Delete Account</button>
+          </div>
+        </div>
+
+        <!-- Face Registration Card -->
+        <div class="card" style="display:flex;flex-direction:column;align-items:center;text-align:center;padding:var(--space-2xl)">
+          <div style="font-size:3rem;margin-bottom:var(--space-md)">📷</div>
+          <h2>Face Authentication</h2>
+          <p class="text-muted" style="margin-bottom:var(--space-lg);font-size:0.9rem">
+            Register your face for quick biometric login. Your face data is encrypted with AES-256-GCM.
+          </p>
+          <button class="btn btn-primary" id="register-face-btn" onclick="openFaceRegister()">
+            Register My Face
+          </button>
+        </div>
+      </div>
+
+      <!-- Quick Stats -->
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">Account Status</div>
+          <div class="stat-value success" style="font-size:1.25rem">Active</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Face Registered</div>
+          <div class="stat-value" id="stat-face" style="font-size:1.25rem">—</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">Security Level</div>
+          <div class="stat-value" id="stat-security" style="font-size:1.25rem">Standard</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Face Registration Modal -->
+  <div id="face-modal" class="modal-overlay" onclick="if(event.target===this)closeFaceModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 style="margin-bottom:0">Register Your Face</h2>
+        <button class="modal-close" onclick="closeFaceModal()">✕</button>
+      </div>
+      <p class="text-muted" style="margin-bottom:var(--space-lg);font-size:0.875rem">
+        Position your face within the oval guide and click capture.
+      </p>
+      <div class="webcam-container">
+        <video id="face-video" autoplay playsinline muted></video>
+        <canvas id="face-canvas"></canvas>
+        <div class="webcam-overlay"><div class="face-guide"></div></div>
+      </div>
+      <div id="face-alert"></div>
+      <div class="webcam-actions">
+        <button class="btn btn-primary btn-full" id="capture-btn" onclick="captureFace()">
+          📸 Capture & Register
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Profile Modal -->
+  <div id="edit-modal" class="modal-overlay" onclick="if(event.target===this)closeEditModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 style="margin-bottom:0">Edit Profile</h2>
+        <button class="modal-close" onclick="closeEditModal()">✕</button>
+      </div>
+      <form id="edit-form">
+        <div class="form-group">
+          <label for="edit-email">New Email</label>
+          <input type="email" id="edit-email" class="form-input" placeholder="new@example.com">
+        </div>
+        <div class="form-group">
+          <label for="edit-password">New Password (leave blank to keep current)</label>
+          <input type="password" id="edit-password" class="form-input" placeholder="Min 8 characters" minlength="8">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Save Changes</button>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

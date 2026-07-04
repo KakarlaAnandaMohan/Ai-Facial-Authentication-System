@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Create your facial authentication account">
+  <title>Register — Facial Auth</title>
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <div class="auth-container">
+    <div class="card card-auth">
+      <div class="logo">
+        <div class="logo-icon">🔐</div>
+        <span class="logo-text">FaceAuth AI</span>
+      </div>
+
+      <h1>Create Account</h1>
+      <p class="subtitle">Get started with AI facial authentication</p>
+
+      <div id="alert-area"></div>
+
+      <form id="register-form">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" class="form-input" placeholder="you@example.com" required autocomplete="email">
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" class="form-input" placeholder="Min 8 characters" required minlength="8" autocomplete="new-password">
+        </div>
+        <div class="form-group">
+          <label for="confirm-password">Confirm Password</label>
+          <input type="password" id="confirm-password" class="form-input" placeholder="Repeat your password" required minlength="8" autocomplete="new-password">
+        </div>
+
+        <!-- Optional Face ID Registration -->
+        <div class="form-group" style="margin-top:var(--space-lg);margin-bottom:var(--space-lg)">
+          <button type="button" id="toggle-face-btn" class="btn btn-secondary btn-full" onclick="toggleFaceRegistration()">
+            📸 Enable Face ID Biometrics (Optional)
+          </button>
+        </div>
+
+        <div id="face-reg-section" class="hidden">
+          <p class="text-muted" style="margin-bottom:var(--space-md);font-size:0.85rem;text-align:center">
+            Position your face in the guide and capture your photo.
+          </p>
+          <div class="webcam-container" style="max-height:240px;margin-bottom:var(--space-md)">
+            <video id="face-video" autoplay playsinline muted></video>
+            <canvas id="face-canvas"></canvas>
+            <div class="webcam-overlay"><div class="face-guide" style="width:160px;height:200px"></div></div>
+          </div>
+          <div class="flex gap-sm mb-lg">
+            <button type="button" id="capture-face-btn" class="btn btn-secondary btn-full btn-sm" onclick="captureFaceRegistration()">
+              📷 Capture Face
+            </button>
+          </div>
+          <div id="face-success-badge" class="hidden text-center mb-md">
+            <span class="badge badge-success">✓ Face ID Captured successfully</span>
+          </div>
+        </div>
+
+        <button type="submit" id="register-btn" class="btn btn-primary btn-full">
+          Create Account
+        </button>
+      </form>
+
+      <p class="text-center mt-lg text-muted" style="font-size:0.875rem;">
+        Already have an account? <a href="index.html">Sign in</a>
+      </p>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    redirectIfAuth();
+
+    let faceStream = null;
+    let faceBlob = null;
+
+    async function toggleFaceRegistration() {
+      const section = document.getElementById('face-reg-section');
+      const btn = document.getElementById('toggle-face-btn');
+
+      if (section.classList.contains('hidden')) {
+        section.classList.remove('hidden');
+        btn.textContent = '✕ Disable Face ID Biometrics';
+        btn.classList.replace('btn-secondary', 'btn-danger');
+
+        try {
+          faceStream = await navigator.mediaDevices.getUserMedia({
+            video: { width: 320, height: 240, facingMode: 'user' }
+          });
+          document.getElementById('face-video').srcObject = faceStream;
+        } catch {
+          showAlert('alert-area', 'Camera access denied. Please allow camera permissions.', 'error');
+        }
+      } else {
+        section.classList.add('hidden');
+        btn.textContent = '📸 Enable Face ID Biometrics (Optional)';
+        btn.classList.replace('btn-danger', 'btn-secondary');
+        stopCamera();
+        faceBlob = null;
+        document.getElementById('face-success-badge').classList.add('hidden');
+      }
+    }
+
+    function stopCamera() {
+      if (faceStream) {
+        faceStream.getTracks().forEach(t => t.stop());
+        faceStream = null;
+      }
+      document.getElementById('face-video').srcObject = null;
+    }
+
+    function captureFaceRegistration() {
+      const video = document.getElementById('face-video');
+      const canvas = document.getElementById('face-canvas');
+      const badge = document.getElementById('face-success-badge');
+
+      canvas.width = video.videoWidth || 320;
+      canvas.height = video.videoHeight || 240;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+
+      canvas.toBlob((blob) => {
+        faceBlob = blob;
+        badge.classList.remove('hidden');
+        showAlert('alert-area', 'Face ID photo captured successfully!', 'success');
+      }, 'image/jpeg', 0.9);
+    }
+
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      const confirm = document.getElementById('confirm-password').value;
+
+      if (password !== confirm) {
+        showAlert('alert-area', 'Passwords do not match', 'error');
+        return;
+      }
+
+      const btn = document.getElementById('register-btn');
+      btn.innerHTML = '<span class="spinner"></span> Creating...';
+      btn.disabled = true;
+
+      try {
+        let res;
+        if (faceBlob) {
+          // Register with Face Biometrics
+          res = await api.registerWithFace(email, password, faceBlob);
+        } else {
+          // Register standard Email/Password only
+          res = await api.register(email, password);
+        }
+
+        if (res.ok) {
+          stopCamera();
+          api.clearTokens(); // Ensure we don't automatically log them in
+          showAlert('alert-area', 'Account created! Redirecting to login page...', 'success');
+          setTimeout(() => window.location.href = 'index.html?registered=true', 1200);
+        } else {
+          showAlert('alert-area', res.data?.detail || 'Registration failed', 'error');
+          btn.innerHTML = 'Create Account';
+          btn.disabled = false;
+        }
+      } catch (err) {
+        console.error(err);
+        showAlert('alert-area', 'Cannot connect to backend server. Make sure uvicorn is running on port 8080.', 'error');
+        btn.innerHTML = 'Create Account';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
